@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Airbnb vs. Janeiro Hotel — O Jogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5ead4;
+    --bg-deep: #ecdab4;
+    --ink: #1c1815;
+    --ink-soft: #4a423b;
+    --muted: #8a7f72;
+    --line: #d4bc8a;
+    --gold: #d4961f;
+    --rust: #c43818;
+    --sage: #5a8c4a;
+    --cream: #fdf7e8;
+    --airbnb: #e8412c;
+    --janeiro: #1f5a3c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body {
+    background-image:
+      radial-gradient(ellipse at top left, rgba(212, 150, 31, 0.18), transparent 55%),
+      radial-gradient(ellipse at top right, rgba(232, 65, 44, 0.10), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(31, 90, 60, 0.14), transparent 55%),
+      radial-gradient(ellipse at bottom left, rgba(196, 56, 24, 0.10), transparent 55%);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.35;
+    z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E");
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 32px 60px;
+    min-height: 100vh;
+  }
+
+  /* ============ HEADER ============ */
+  .masthead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 28px;
+  }
+
+  .brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 20px;
+    letter-spacing: 0.08em;
+    color: var(--rust);
+  }
+
+  .edition {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  /* ============ SCOREBOARD ============ */
+  .scoreboard {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+
+  .player {
+    text-align: center;
+    padding: 18px 24px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .player.active {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--cream);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px -10px rgba(28, 24, 21, 0.35);
+  }
+
+  .player.score-pulse {
+    animation: scorePulse 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .player.score-pulse-bad {
+    animation: scoreShake 0.5s ease;
+  }
+
+  @keyframes scorePulse {
+    0% { transform: translateY(-3px) scale(1); }
+    40% { transform: translateY(-3px) scale(1.08); box-shadow: 0 20px 50px -10px rgba(200, 155, 74, 0.6); }
+    100% { transform: translateY(-3px) scale(1); }
+  }
+
+  @keyframes scoreShake {
+    0%, 100% { transform: translateY(-3px) translateX(0); }
+    25% { transform: translateY(-3px) translateX(-8px); }
+    75% { transform: translateY(-3px) translateX(8px); }
+  }
+
+  .player-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  .player.active .player-label { color: var(--gold); }
+
+  .player-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-style: italic;
+  }
+
+  .player-score {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 64px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    transition: color 0.3s;
+    color: var(--rust);
+  }
+
+  .player.active .player-score { color: var(--gold); }
+
+  .vs {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 40px;
+    color: var(--rust);
+    font-weight: 500;
+  }
+
+  /* ============ ROUND INFO ============ */
+  .round-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .round-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 24px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .round-progress { display: flex; gap: 8px; }
+
+  .pip {
+    width: 32px;
+    height: 4px;
+    background: var(--line);
+    transition: background 0.4s ease;
+    border-radius: 2px;
+  }
+
+  .pip.done { background: var(--janeiro); }
+  .pip.current { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+
+  /* ============ CARD ============ */
+  .card {
+    background: var(--cream);
+    border: 1px solid var(--line);
+    padding: 36px 44px;
+    position: relative;
+    box-shadow: 0 30px 60px -30px rgba(28, 24, 21, 0.18);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 1px solid var(--line);
+    pointer-events: none;
+  }
+
+  .difficulty-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .difficulty {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border: 2px solid currentColor;
+    font-weight: 700;
+    border-radius: 2px;
+  }
+
+  .difficulty.easy { color: var(--sage); background: rgba(90, 140, 74, 0.08); }
+  .difficulty.medium { color: var(--gold); background: rgba(212, 150, 31, 0.10); }
+  .difficulty.hard { color: var(--rust); background: rgba(196, 56, 24, 0.10); }
+
+  .points-badge {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--ink-soft);
+  }
+
+  .points-badge strong {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--rust);
+    font-size: 26px;
+  }
+
+  /* ============ CHARACTER LAYOUT ============ */
+  .character-row {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .avatar-frame {
+    position: relative;
+    width: 240px;
+    height: 288px;
+    background: linear-gradient(160deg, var(--bg-deep), var(--cream));
+    border: 2px solid var(--gold);
+    overflow: hidden;
+    box-shadow: 0 12px 30px -10px rgba(212, 150, 31, 0.4);
+  }
+
+  .avatar-frame::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    border: 1px solid var(--gold);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .avatar-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    animation: avatarIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes avatarIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .profile-info { min-width: 0; }
+
+  .profile-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 600;
+    line-height: 1.05;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .profile-meta {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--rust);
+    margin-bottom: 18px;
+    font-weight: 500;
+  }
+
+  .profile-description {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--ink);
+    margin-bottom: 20px;
+    font-weight: 400;
+  }
+
+  .profile-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cream);
+    padding: 7px 13px;
+    background: var(--janeiro);
+    border-radius: 3px;
+    font-weight: 600;
+  }
+
+  /* ============ CHOICES ============ */
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .choice {
+    background: transparent;
+    border: 2.5px solid var(--ink);
+    padding: 28px 22px;
+    cursor: pointer;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--ink);
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    border-radius: 3px;
+  }
+
+  .choice:hover:not(:disabled) {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -6px rgba(28, 24, 21, 0.35);
+  }
+
+  .choice:disabled { cursor: not-allowed; opacity: 0.6; }
+
+  .choice-airbnb { border-color: var(--airbnb); color: var(--airbnb); background: rgba(232, 65, 44, 0.04); }
+  .choice-airbnb:hover:not(:disabled) { background: var(--airbnb); color: var(--cream); }
+
+  .choice-janeiro { border-color: var(--janeiro); color: var(--janeiro); background: rgba(31, 90, 60, 0.05); }
+  .choice-janeiro:hover:not(:disabled) { background: var(--janeiro); color: var(--cream); }
+
+  .choice-label {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  /* ============ REVEAL DRAMA ============ */
+  .reveal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 24, 21, 0.85);
+    z-index: 100;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    backdrop-filter: blur(8px);
+  }
+
+  .reveal-overlay.show { display: flex; animation: overlayIn 0.3s ease; }
+
+  @keyframes overlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .reveal-card {
+    background: var(--cream);
+    border: 1px solid var(--gold);
+    padding: 48px 56px;
+    max-width: 640px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    animation: revealIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .reveal-card::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 1px solid var(--gold);
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  @keyframes revealIn {
+    from { opacity: 0; transform: scale(0.7) translateY(40px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .verdict-banner {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 128px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 12px;
+    letter-spacing: -0.03em;
+    animation: verdictIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+  }
+
+  .verdict-banner.correct { color: var(--sage); text-shadow: 0 4px 20px rgba(90, 140, 74, 0.4); }
+  .verdict-banner.wrong { color: var(--rust); text-shadow: 0 4px 20px rgba(196, 56, 24, 0.4); }
+
+  @keyframes verdictIn {
+    from { opacity: 0; transform: scale(0.5) rotate(-8deg); }
+    to { opacity: 1; transform: scale(1) rotate(0); }
+  }
+
+  .verdict-points {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    color: var(--ink);
+    margin-bottom: 32px;
+    font-weight: 500;
+    animation: fadeUp 0.6s ease 0.5s both;
+  }
+
+  .verdict-points strong {
+    color: var(--gold);
+    font-style: italic;
+    font-size: 44px;
+    font-weight: 700;
+  }
+
+  .verdict-answer {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+    font-weight: 700;
+    animation: fadeUp 0.6s ease 0.7s both;
+  }
+
+  .verdict-answer-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 56px;
+    font-weight: 700;
+    margin-bottom: 28px;
+    animation: fadeUp 0.6s ease 0.8s both;
+  }
+
+  .verdict-answer-name.airbnb-color { color: var(--airbnb); }
+  .verdict-answer-name.janeiro-color { color: var(--janeiro); }
+
+  .verdict-explanation {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--ink);
+    margin-bottom: 36px;
+    font-weight: 400;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeUp 0.6s ease 1s both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .btn-next {
+    background: var(--rust);
+    color: var(--cream);
+    border: none;
+    padding: 18px 44px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 700;
+    animation: fadeUp 0.6s ease 1.2s both;
+    border-radius: 3px;
+  }
+
+  .btn-next:hover {
+    background: var(--ink);
+    letter-spacing: 0.35em;
+    transform: translateY(-2px);
+  }
+
+  /* ============ CONFETTI / PARTICLES ============ */
+  .particle {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    z-index: 99;
+    pointer-events: none;
+  }
+
+  /* ============ FINAL SCREEN ============ */
+  .final {
+    text-align: center;
+    padding: 40px 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .final-ornament {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 40px;
+    color: var(--gold);
+    margin-bottom: 16px;
+    letter-spacing: 0.5em;
+    animation: fadeUp 0.8s ease;
+  }
+
+  .final-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px;
+    font-weight: 500;
+    font-style: italic;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    animation: fadeUp 0.8s ease 0.1s both;
+  }
+
+  .final-winner-crown {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+    animation: fadeUp 0.8s ease 0.3s both;
+  }
+
+  .final-winner-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 88px;
+    font-weight: 700;
+    color: var(--rust);
+    margin-bottom: 48px;
+    letter-spacing: -0.02em;
+    animation: winnerIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+    text-shadow: 0 4px 20px rgba(196, 56, 24, 0.3);
+  }
+
+  @keyframes winnerIn {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .final-scores {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 60px;
+    margin-bottom: 48px;
+  }
+
+  .final-player {
+    text-align: center;
+    padding: 28px 36px;
+    border: 2px solid var(--line);
+    background: var(--cream);
+    min-width: 200px;
+    transition: all 0.5s ease;
+    animation: fadeUp 0.8s ease 0.7s both;
+    border-radius: 3px;
+  }
+
+  .final-player.winner {
+    background: var(--janeiro);
+    color: var(--cream);
+    border-color: var(--gold);
+    border-width: 3px;
+    transform: translateY(-16px);
+    box-shadow: 0 24px 50px -10px rgba(31, 90, 60, 0.5);
+  }
+
+  .final-player.winner::before {
+    content: '★';
+    display: block;
+    color: var(--gold);
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+
+  .final-player-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--rust);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .final-player.winner .final-player-name { color: var(--gold); }
+
+  .final-player-score {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 96px;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+
+  .final-player.winner .final-player-score { color: var(--cream); }
+
+  .btn-restart {
+    background: transparent;
+    border: 2px solid var(--ink);
+    color: var(--ink);
+    padding: 16px 36px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 700;
+    animation: fadeUp 0.8s ease 1s both;
+    border-radius: 3px;
+  }
+
+  .btn-restart:hover { background: var(--ink); color: var(--cream); }
+
+  .fade-in { animation: cardIn 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 760px) {
+    .container { padding: 20px 14px 40px; }
+    .card { padding: 28px 22px; }
+    .card::before { top: 8px; left: 8px; right: 8px; bottom: 8px; }
+    .profile-name { font-size: 32px; }
+    .profile-meta { font-size: 18px; }
+    .profile-description { font-size: 16px; }
+    .character-row { grid-template-columns: 1fr; gap: 20px; }
+    .avatar-frame { width: 180px; height: 220px; margin: 0 auto; }
+    .choices { grid-template-columns: 1fr; }
+    .choice { font-size: 28px; padding: 22px 18px; }
+    .scoreboard { grid-template-columns: 1fr 1fr; }
+    .vs { display: none; }
+    .player-score { font-size: 48px; }
+    .player-name { font-size: 20px; }
+    .final-scores { gap: 24px; flex-direction: column; align-items: center; }
+    .final-title { font-size: 48px; }
+    .final-winner-name { font-size: 56px; }
+    .final-player-score { font-size: 72px; }
+    .verdict-banner { font-size: 80px; }
+    .verdict-answer-name { font-size: 40px; }
+    .verdict-points { font-size: 22px; }
+    .verdict-points strong { font-size: 30px; }
+    .verdict-explanation { font-size: 16px; }
+    .reveal-card { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+
+    <header class="masthead">
+      <div class="brand">— Hospitalidade Carioca —</div>
+      <div class="edition">Edição Especial · Leblon</div>
+    </header>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard">
+      <div class="player" id="player1">
+        <div class="player-label">Jogador 1</div>
+        <div class="player-name">à esquerda</div>
+        <div class="player-score" id="score1">0</div>
+      </div>
+      <div class="vs">vs.</div>
+      <div class="player" id="player2">
+        <div class="player-label">Jogador 2</div>
+        <div class="player-name">à direita</div>
+        <div class="player-score" id="score2">0</div>
+      </div>
+    </div>
+
+    <!-- Round info -->
+    <div class="round-info">
+      <div class="round-label" id="roundLabel">Rodada 1 de 8</div>
+      <div class="round-progress" id="progress"></div>
+    </div>
+
+    <!-- Main game card -->
+    <main id="gameArea"></main>
+
+  </div>
+
+  <!-- Reveal overlay (drama) -->
+  <div class="reveal-overlay" id="revealOverlay">
+    <div class="reveal-card" id="revealCard"></div>
+  </div>
+
+<script>
+  // ============ AVATARS (SVG) ============
+  // Cada avatar é um retrato estilizado, sem detalhes que entreguem a resposta
+  const avatars = {
+    marcelo: `<svg class="avatar-svg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="240" fill="#ebe3d6"/>
+      <circle cx="100" cy="240" r="90" fill="#2c4a3e" opacity="0.15"/>
+      <!-- Suit -->
+      <path d="M40 240 L60 170 Q100 160 140 170 L160 240 Z" fill="#1c1815"/>
+      <path d="M85 240 L95 175 L100 180 L105 175 L115 240 Z" fill="#faf6ef"/>
+      <path d="M97 180 L100 200 L103 180 Z" fill="#b04a28"/>
+      <!-- Neck -->
+      <rect x="90" y="155" width="20" height="20" fill="#d4a574"/>
+      <!-- Head -->
+      <ellipse cx="100" cy="120" rx="42" ry="48" fill="#d4a574"/>
+      <!-- Hair (greying) -->
+      <path d="M58 110 Q60 75 100 72 Q140 75 142 110 Q140 95 130 90 Q115 88 100 90 Q85 88 70 90 Q60 95 58 110 Z" fill="#5a4a3a"/>
+      <path d="M70 90 Q80 87 90 89" stroke="#8a7f72" stroke-width="2" fill="none"/>
+      <!-- Eyes -->
+      <ellipse cx="85" cy="120" rx="3" ry="4" fill="#1c1815"/>
+      <ellipse cx="115" cy="120" rx="3" ry="4" fill="#1c1815"/>
+      <!-- Eyebrows -->
+      <path d="M78 112 L92 110" stroke="#3a2a1a" stroke-width="2" stroke-linecap="round"/>
+      <path d="M108 110 L122 112" stroke="#3a2a1a" stroke-width="2" stroke-linecap="round"/>
+      <!-- Glasses -->
+      <circle cx="85" cy="120" r="10" stroke="#1c1815" stroke-width="1.5" fill="none"/>
+      <circle cx="115" cy="120" r="10" stroke="#1c1815" stroke-width="1.5" fill="none"/>
+      <line x1="95" y1="120" x2="105" y2="120" stroke="#1c1815" stroke-width="1.5"/>
+      <!-- Mouth -->
+      <path d="M90 142 Q100 145 110 142" stroke="#3a2a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    </svg>`,
+
+    familia: `<svg class="avatar-svg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="240" fill="#ebe3d6"/>
+      <circle cx="100" cy="240" r="100" fill="#c89b4a" opacity="0.15"/>
+      <!-- Back row: parents -->
+      <!-- Dad -->
+      <ellipse cx="60" cy="105" rx="25" ry="28" fill="#c19478"/>
+      <path d="M40 100 Q45 80 60 78 Q75 80 80 100 Q75 90 60 90 Q45 90 40 100" fill="#3a2a1a"/>
+      <circle cx="53" cy="105" r="2" fill="#1c1815"/>
+      <circle cx="67" cy="105" r="2" fill="#1c1815"/>
+      <path d="M55 118 Q60 121 65 118" stroke="#3a2a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M35 240 L42 135 Q60 130 78 135 L85 175 L62 175 Z" fill="#7a4a2a"/>
+      <!-- Mom -->
+      <ellipse cx="140" cy="105" rx="25" ry="28" fill="#e0b89a"/>
+      <path d="M115 110 Q115 80 140 76 Q165 80 165 110 Q165 130 155 130 L125 130 Q115 130 115 110" fill="#8a4a2a"/>
+      <circle cx="133" cy="108" r="2" fill="#1c1815"/>
+      <circle cx="147" cy="108" r="2" fill="#1c1815"/>
+      <path d="M135 120 Q140 123 145 120" stroke="#3a2a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M115 240 L122 135 Q140 130 158 135 L165 240 Z" fill="#b04a28"/>
+      <!-- Kids in front -->
+      <ellipse cx="55" cy="180" rx="15" ry="18" fill="#e8c4a8"/>
+      <circle cx="50" cy="180" r="1.5" fill="#1c1815"/>
+      <circle cx="60" cy="180" r="1.5" fill="#1c1815"/>
+      <path d="M40 178 Q42 165 55 163 Q68 165 70 178" fill="#5a3a2a"/>
+      <path d="M40 240 L45 200 Q55 197 65 200 L70 240 Z" fill="#5a6b4e"/>
+      <ellipse cx="100" cy="185" rx="14" ry="17" fill="#d4a584"/>
+      <circle cx="96" cy="185" r="1.5" fill="#1c1815"/>
+      <circle cx="104" cy="185" r="1.5" fill="#1c1815"/>
+      <path d="M88 183 Q90 170 100 168 Q110 170 112 183" fill="#3a2a1a"/>
+      <path d="M86 240 L91 205 Q100 202 109 205 L114 240 Z" fill="#c89b4a"/>
+      <ellipse cx="145" cy="180" rx="15" ry="18" fill="#e0b894"/>
+      <circle cx="140" cy="180" r="1.5" fill="#1c1815"/>
+      <circle cx="150" cy="180" r="1.5" fill="#1c1815"/>
+      <path d="M128 180 Q132 162 145 161 Q158 162 162 180 Q158 175 145 174 Q132 175 128 180" fill="#6a4a2a"/>
+      <path d="M130 240 L135 200 Q145 197 155 200 L160 240 Z" fill="#2c4a3e"/>
+    </svg>`,
+
+    sophie: `<svg class="avatar-svg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="240" fill="#ebe3d6"/>
+      <circle cx="100" cy="240" r="90" fill="#b04a28" opacity="0.12"/>
+      <!-- Dress -->
+      <path d="M40 240 L65 175 Q100 165 135 175 L160 240 Z" fill="#faf6ef"/>
+      <path d="M65 175 Q100 170 135 175 L130 200 Q100 195 70 200 Z" fill="#e0d4b8"/>
+      <!-- Neck -->
+      <rect x="92" y="158" width="16" height="18" fill="#f0d4b8"/>
+      <!-- Head -->
+      <ellipse cx="100" cy="118" rx="40" ry="46" fill="#f0d4b8"/>
+      <!-- Hair (long, elegant) -->
+      <path d="M60 115 Q58 70 100 65 Q142 70 140 115 Q142 90 130 80 Q115 75 100 76 Q85 75 70 80 Q58 90 60 115" fill="#c89b4a"/>
+      <path d="M58 125 Q55 160 65 200 L75 195 Q70 160 70 125" fill="#c89b4a"/>
+      <path d="M142 125 Q145 160 135 200 L125 195 Q130 160 130 125" fill="#c89b4a"/>
+      <!-- Earring (small) -->
+      <circle cx="62" cy="125" r="2" fill="#c89b4a"/>
+      <circle cx="138" cy="125" r="2" fill="#c89b4a"/>
+      <!-- Eyes -->
+      <ellipse cx="86" cy="118" rx="3" ry="4" fill="#2c4a3e"/>
+      <ellipse cx="114" cy="118" rx="3" ry="4" fill="#2c4a3e"/>
+      <!-- Eyebrows -->
+      <path d="M79 110 Q86 107 93 110" stroke="#8a6a3a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M107 110 Q114 107 121 110" stroke="#8a6a3a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- Lips (red) -->
+      <path d="M90 142 Q100 148 110 142 Q100 145 90 142" fill="#b04a28"/>
+      <!-- Subtle blush -->
+      <ellipse cx="78" cy="132" rx="6" ry="4" fill="#d4847a" opacity="0.4"/>
+      <ellipse cx="122" cy="132" rx="6" ry="4" fill="#d4847a" opacity="0.4"/>
+    </svg>`,
+
+    amigas: `<svg class="avatar-svg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="240" fill="#ebe3d6"/>
+      <circle cx="100" cy="240" r="100" fill="#d54a3a" opacity="0.12"/>
+      <!-- 6 friends arrangement - back row 3, front row 3 -->
+      <!-- Back row -->
+      <ellipse cx="45" cy="95" rx="20" ry="23" fill="#d4a584"/>
+      <path d="M28 95 Q28 70 45 68 Q62 70 62 95" fill="#3a2a1a"/>
+      <circle cx="40" cy="95" r="1.5" fill="#1c1815"/>
+      <circle cx="50" cy="95" r="1.5" fill="#1c1815"/>
+      <path d="M40 105 Q45 108 50 105" stroke="#3a2a1a" stroke-width="1.2" fill="none"/>
+      <path d="M25 240 L30 122 Q45 117 60 122 L65 165 L48 165 Z" fill="#b04a28"/>
+
+      <ellipse cx="100" cy="88" rx="22" ry="25" fill="#e8c4a0"/>
+      <path d="M82 88 Q80 60 100 58 Q120 60 118 88 Q118 95 110 95 L90 95 Q82 95 82 88" fill="#c89b4a"/>
+      <circle cx="93" cy="88" r="1.8" fill="#1c1815"/>
+      <circle cx="107" cy="88" r="1.8" fill="#1c1815"/>
+      <path d="M94 99 Q100 103 106 99" stroke="#b04a28" stroke-width="1.5" fill="none"/>
+      <path d="M78 240 L85 115 Q100 110 115 115 L122 160 L100 160 Z" fill="#2c4a3e"/>
+
+      <ellipse cx="155" cy="95" rx="20" ry="23" fill="#c19478"/>
+      <path d="M138 95 Q135 65 155 63 Q175 65 172 95" fill="#1c1815"/>
+      <circle cx="150" cy="95" r="1.5" fill="#1c1815"/>
+      <circle cx="160" cy="95" r="1.5" fill="#1c1815"/>
+      <path d="M150 105 Q155 108 160 105" stroke="#3a2a1a" stroke-width="1.2" fill="none"/>
+      <path d="M135 240 L140 122 Q155 117 170 122 L175 165 Z" fill="#c89b4a"/>
+
+      <!-- Front row -->
+      <ellipse cx="65" cy="170" rx="18" ry="20" fill="#e0b894"/>
+      <path d="M50 170 Q48 145 65 143 Q82 145 80 170" fill="#5a3a2a"/>
+      <circle cx="60" cy="170" r="1.5" fill="#1c1815"/>
+      <circle cx="70" cy="170" r="1.5" fill="#1c1815"/>
+      <path d="M60 180 Q65 184 70 180" stroke="#b04a28" stroke-width="1.5" fill="none"/>
+      <path d="M48 240 L52 195 Q65 192 78 195 L82 240 Z" fill="#d54a3a"/>
+
+      <ellipse cx="130" cy="170" rx="18" ry="20" fill="#d4a584"/>
+      <path d="M114 170 Q112 145 130 143 Q148 145 146 170" fill="#8a4a2a"/>
+      <circle cx="125" cy="170" r="1.5" fill="#1c1815"/>
+      <circle cx="135" cy="170" r="1.5" fill="#1c1815"/>
+      <path d="M125 180 Q130 184 135 180" stroke="#b04a28" stroke-width="1.5" fill="none"/>
+      <path d="M113 240 L117 195 Q130 192 143 195 L147 240 Z" fill="#5a6b4e"/>
+    </svg>`,
+
+    carlos: `<svg class="avatar-svg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="240" fill="#ebe3d6"/>
+      <circle cx="100" cy="240" r="90" fill="#5a6b4e" opacity="0.15"/>
+      <!-- T-shirt -->
+      <path d="M45 240 L60 170 Q100 162 140 170 L155 240 Z" fill="#2c4a3e"/>
+      <!-- Neck -->
+      <rect x="90" y="155" width="20" height="18" fill="#d4a574"/>
+      <!-- Head -->
+      <ellipse cx="100" cy="120" rx="40" ry="45" fill="#d4a574"/>
+      <!-- Hair (messy, casual) -->
+      <path d="M62 115 Q58 78 100 72 Q142 78 138 115 Q140 90 125 85 Q105 82 95 87 Q80 85 68 92 Q62 105 62 115 Z" fill="#5a3a1a"/>
+      <path d="M70 78 Q75 72 82 76" stroke="#3a2a1a" stroke-width="2" fill="none"/>
+      <!-- Beard (stubble) -->
+      <ellipse cx="100" cy="148" rx="22" ry="8" fill="#3a2a1a" opacity="0.35"/>
+      <!-- Eyes -->
+      <ellipse cx="86" cy="120" rx="3" ry="4" fill="#1c1815"/>
+      <ellipse cx="114" cy="120" rx="3" ry="4" fill="#1c1815"/>
+      <!-- Eyebrows -->
+      <path d="M79 113 L93 112" stroke="#3a2a1a" stroke-width="2" stroke-linecap="round"/>
+      <path d="M107 112 L121 113" stroke="#3a2a1a" stroke-width="2" stroke-linecap="round"/>
+      <!-- Mouth -->
+      <path d="M90 142 Q100 146 110 142" stroke="#3a2a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    </svg>`,
+
+    heloisa: `<svg class="avatar-svg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="240" fill="#ebe3d6"/>
+      <circle cx="100" cy="240" r="90" fill="#8a7f72" opacity="0.15"/>
+      <!-- Blouse -->
+      <path d="M40 240 L62 170 Q100 162 138 170 L160 240 Z" fill="#9a8a7a"/>
+      <!-- Pearls -->
+      <circle cx="92" cy="172" r="2" fill="#faf6ef"/>
+      <circle cx="100" cy="174" r="2" fill="#faf6ef"/>
+      <circle cx="108" cy="172" r="2" fill="#faf6ef"/>
+      <!-- Neck -->
+      <rect x="92" y="156" width="16" height="16" fill="#e8c8a8"/>
+      <!-- Head -->
+      <ellipse cx="100" cy="120" rx="40" ry="46" fill="#e8c8a8"/>
+      <!-- Hair (white/silver, short) -->
+      <path d="M60 112 Q56 78 100 72 Q144 78 140 112 Q142 92 130 86 Q110 82 100 85 Q90 82 70 86 Q58 92 60 112" fill="#d8d4ce"/>
+      <path d="M65 100 Q70 95 80 96" stroke="#a8a4a0" stroke-width="2" fill="none"/>
+      <!-- Glasses (gentle, round) -->
+      <circle cx="86" cy="122" r="11" stroke="#3a2a1a" stroke-width="1.5" fill="none"/>
+      <circle cx="114" cy="122" r="11" stroke="#3a2a1a" stroke-width="1.5" fill="none"/>
+      <line x1="97" y1="122" x2="103" y2="122" stroke="#3a2a1a" stroke-width="1.5"/>
+      <!-- Eyes -->
+      <ellipse cx="86" cy="122" rx="2.5" ry="3" fill="#1c1815"/>
+      <ellipse cx="114" cy="122" rx="2.5" ry="3" fill="#1c1815"/>
+      <!-- Cheek lines (age) -->
+      <path d="M70 138 Q72 145 75 150" stroke="#b89878" stroke-width="0.8" fill="none" opacity="0.6"/>
+      <path d="M130 138 Q128 145 125 150" stroke="#b89878" stroke-width="0.8" fill="none" opacity="0.6"/>
+      <!-- Earrings (pearls) -->
+      <circle cx="60" cy="128" r="2.5" fill="#faf6ef" stroke="#a8a4a0" stroke-width="0.5"/>
+      <circle cx="140" cy="128" r="2.5" fill="#faf6ef" stroke="#a8a4a0" stroke-width="0.5"/>
+      <!-- Smile (kind) -->
+      <path d="M86 146 Q100 152 114 146" stroke="#8a4a2a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    </svg>`,
+
+    yuki: `<svg class="avatar-svg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="240" fill="#ebe3d6"/>
+      <circle cx="100" cy="240" r="90" fill="#c89b4a" opacity="0.18"/>
+      <!-- Trendy top -->
+      <path d="M45 240 L62 170 Q100 160 138 170 L155 240 Z" fill="#1c1815"/>
+      <!-- Neck -->
+      <rect x="92" y="156" width="16" height="16" fill="#f0d4b8"/>
+      <!-- Head -->
+      <ellipse cx="100" cy="120" rx="40" ry="45" fill="#f0d4b8"/>
+      <!-- Hair (long, dark, sleek with bangs) -->
+      <path d="M60 115 Q56 70 100 65 Q144 70 140 115 Q142 88 135 82 Q120 76 100 78 Q80 76 65 82 Q58 88 60 115" fill="#1c1815"/>
+      <path d="M60 115 Q55 175 65 220 L80 215 Q72 175 70 115" fill="#1c1815"/>
+      <path d="M140 115 Q145 175 135 220 L120 215 Q128 175 130 115" fill="#1c1815"/>
+      <!-- Bangs -->
+      <path d="M68 88 Q85 100 100 95 Q115 100 132 88 L130 102 Q115 110 100 108 Q85 110 70 102 Z" fill="#0a0805"/>
+      <!-- Eyes (with subtle eyeliner) -->
+      <path d="M80 118 Q86 116 92 119" stroke="#1c1815" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M108 119 Q114 116 120 118" stroke="#1c1815" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="86" cy="120" rx="2.5" ry="3" fill="#1c1815"/>
+      <ellipse cx="114" cy="120" rx="2.5" ry="3" fill="#1c1815"/>
+      <!-- Eyebrows (thin, modern) -->
+      <path d="M80 110 Q86 108 92 110" stroke="#1c1815" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M108 110 Q114 108 120 110" stroke="#1c1815" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- Lips (glossy) -->
+      <path d="M91 143 Q100 148 109 143 Q100 146 91 143" fill="#d4847a"/>
+      <!-- Earring (statement, large) -->
+      <circle cx="60" cy="130" r="4" fill="#c89b4a"/>
+      <circle cx="140" cy="130" r="4" fill="#c89b4a"/>
+    </svg>`,
+
+    ricardoPaula: `<svg class="avatar-svg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="240" fill="#ebe3d6"/>
+      <circle cx="100" cy="240" r="90" fill="#b04a28" opacity="0.12"/>
+      <!-- Ricardo (left) -->
+      <ellipse cx="65" cy="120" rx="30" ry="35" fill="#d4a574"/>
+      <!-- Hair greying -->
+      <path d="M37 118 Q35 88 65 84 Q95 88 93 118 Q92 100 80 96 Q65 94 50 96 Q40 100 37 118" fill="#5a4a3a"/>
+      <path d="M40 100 Q45 95 55 96" stroke="#a8a098" stroke-width="2" fill="none"/>
+      <!-- Eyes -->
+      <ellipse cx="55" cy="120" rx="2.5" ry="3" fill="#1c1815"/>
+      <ellipse cx="75" cy="120" rx="2.5" ry="3" fill="#1c1815"/>
+      <!-- Eyebrows -->
+      <path d="M48 112 L62 111" stroke="#3a2a1a" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M68 111 L82 112" stroke="#3a2a1a" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Smile -->
+      <path d="M55 138 Q65 142 75 138" stroke="#3a2a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- Cheek lines -->
+      <path d="M44 132 Q46 138 48 142" stroke="#b89878" stroke-width="0.8" fill="none" opacity="0.5"/>
+      <!-- Shirt -->
+      <path d="M30 240 L40 162 Q65 156 90 162 L95 200 L80 200 Z" fill="#2c4a3e"/>
+      <rect x="62" y="170" width="6" height="20" fill="#1a3a2e"/>
+
+      <!-- Paula (right) -->
+      <ellipse cx="135" cy="120" rx="30" ry="35" fill="#e0b894"/>
+      <!-- Hair (shoulder length, brown with grey strands) -->
+      <path d="M105 118 Q103 84 135 80 Q167 84 165 118 Q167 95 155 90 Q135 86 120 90 Q108 95 105 118" fill="#7a5a3a"/>
+      <path d="M105 118 Q103 140 110 155 L118 152 Q113 140 113 120" fill="#7a5a3a"/>
+      <path d="M165 118 Q167 140 160 155 L152 152 Q157 140 157 120" fill="#7a5a3a"/>
+      <path d="M115 92 Q125 88 135 90" stroke="#a89878" stroke-width="1.5" fill="none"/>
+      <!-- Earring -->
+      <circle cx="106" cy="130" r="2" fill="#c89b4a"/>
+      <circle cx="164" cy="130" r="2" fill="#c89b4a"/>
+      <!-- Eyes -->
+      <ellipse cx="125" cy="120" rx="2.5" ry="3" fill="#1c1815"/>
+      <ellipse cx="145" cy="120" rx="2.5" ry="3" fill="#1c1815"/>
+      <!-- Eyebrows -->
+      <path d="M118 112 Q125 110 132 112" stroke="#5a4a3a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M138 112 Q145 110 152 112" stroke="#5a4a3a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- Lips -->
+      <path d="M126 140 Q135 144 144 140 Q135 142 126 140" fill="#b04a28"/>
+      <!-- Cheek lines -->
+      <path d="M114 132 Q112 138 110 142" stroke="#b89878" stroke-width="0.8" fill="none" opacity="0.5"/>
+      <!-- Blouse -->
+      <path d="M110 240 L115 165 Q135 158 160 165 L170 240 Z" fill="#b04a28"/>
+      <!-- Heart between them -->
+      <path d="M100 175 Q97 170 93 173 Q90 178 100 186 Q110 178 107 173 Q103 170 100 175" fill="#d54a3a" opacity="0.8"/>
+    </svg>`
+  };
+
+  // ============ GAME DATA ============
+  // Descrições reescritas: dão contexto sem entregar a resposta
+  const profiles = [
+    {
+      name: "Marcelo Andrade",
+      meta: "52 anos · São Paulo → Rio",
+      avatar: avatars.marcelo,
+      description: "Diretor financeiro de uma multinacional. Voa para o Rio na quarta-feira para três dias de reuniões com investidores no Centro. Volta pra casa no sábado. Veste terno todos os dias do ano.",
+      tags: ["Solo", "3 noites", "Conta da empresa", "Executivo"],
+      answer: "janeiro",
+      difficulty: "easy",
+      points: 1,
+      explanation: "Viagem corporativa de poucos dias com a empresa pagando. O executivo quer previsibilidade, nota fiscal padronizada e zero tempo gasto resolvendo logística. É exatamente o miolo do mercado hoteleiro."
+    },
+    {
+      name: "Família Oliveira",
+      meta: "5 pessoas · Belo Horizonte → Rio",
+      avatar: avatars.familia,
+      description: "Pai, mãe e três filhos entre 6 e 12 anos. Vêm passar as férias de julho no Rio — dez dias inteiros. Orçamento apertado mas não querem abrir mão de uma boa experiência. As crianças são agitadas.",
+      tags: ["Família", "10 noites", "Crianças", "Orçamento médio"],
+      answer: "airbnb",
+      difficulty: "easy",
+      points: 1,
+      explanation: "Dez dias em hotel para cinco pessoas custa uma fortuna e ninguém aguenta dois quartos pequenos. Um apartamento de três quartos é mais barato e dá espaço pras crianças. Caso clássico."
+    },
+    {
+      name: "Sophie Laurent",
+      meta: "29 anos · Paris → Rio",
+      avatar: avatars.sophie,
+      description: "Acabou de casar com um banqueiro francês. Cinco dias no Rio em lua de mel. Orçamento ilimitado. Quer que cada momento seja memorável e está postando tudo no story. Não fala português.",
+      tags: ["Lua de mel", "Premium", "5 noites", "Casal"],
+      answer: "janeiro",
+      difficulty: "easy",
+      points: 1,
+      explanation: "Lua de mel premium é sobre ritual, não sobre teto. O valor está nos detalhes que só uma equipe treinada entrega: chegada perfeita, pétalas certas, jantar surpresa, alguém resolvendo qualquer coisa em segundos."
+    },
+    {
+      name: "As Despedidas",
+      meta: "6 amigas · 27-32 anos · Curitiba",
+      avatar: avatars.amigas,
+      description: "Seis amigas vão pro Rio celebrar o casamento da Bia, que casa em três meses. Fim de semana de sexta a domingo. Querem dançar até tarde, dormir tarde, tomar café da manhã às duas da tarde. Foto vai virar quadro.",
+      tags: ["Grupo", "3 noites", "Festa", "Solteiras"],
+      answer: "airbnb",
+      difficulty: "medium",
+      points: 2,
+      explanation: "Seis quartos de hotel é caro demais e o hotel impõe regras que matam o clima do grupo. Uma cobertura grande deixa elas juntas o tempo todo, sem horários, sem julgamento, e ainda sai por menos."
+    },
+    {
+      name: "Carlos Mendoza",
+      meta: "38 anos · São Francisco → Rio",
+      avatar: avatars.carlos,
+      description: "Engenheiro de software numa startup americana. Vai passar seis semanas no Rio enquanto faz seu trabalho normal de casa. Tem reuniões de madrugada por causa do fuso. Adora se misturar com locais e detesta se sentir turista.",
+      tags: ["Profissional", "42 noites", "Trabalho remoto", "Solo"],
+      answer: "airbnb",
+      difficulty: "medium",
+      points: 2,
+      explanation: "Seis semanas em hotel é proibitivo, mesmo com desconto de longa estadia. E o perfil dele rejeita ativamente a experiência turística do hotel. Quer rotina, vizinho, padaria da esquina."
+    },
+    {
+      name: "Dona Heloísa",
+      meta: "71 anos · Porto Alegre → Rio",
+      avatar: avatars.heloisa,
+      description: "Viúva há dois anos. A filha mora em Lisboa e implorou pra ela tirar férias. É a primeira vez que viaja sozinha na vida. Tem pressão alta. Mexe no celular o básico. Está com medo, mas animada.",
+      tags: ["Sênior", "7 noites", "Primeira viagem solo", "Cautelosa"],
+      answer: "janeiro",
+      difficulty: "medium",
+      points: 2,
+      explanation: "Tudo nela pede uma estrutura institucional: equipe treinada se algo der errado, recepção 24h com gente de verdade, restaurante no prédio, alguém pra perguntar onde almoçar. Airbnb seria fonte de ansiedade."
+    },
+    {
+      name: "Yuki Tanaka",
+      meta: "26 anos · Tóquio → Rio · 280k seguidores",
+      avatar: avatars.yuki,
+      description: "Criadora de conteúdo de viagem com público fiel. Cachê alto, gosta de luxo. Mas seu posicionamento é 'viva como local'. Quatro dias no Rio gravando conteúdo. Cada post precisa parecer único, jamais genérico.",
+      tags: ["Content creator", "4 noites", "Alta renda", "Estética"],
+      answer: "airbnb",
+      difficulty: "hard",
+      points: 3,
+      explanation: "Pegadinha. Renda alta nem sempre vai pro hotel. O produto dela é a narrativa 'autêntica' que vende ao público. Hotel padronizado mata esse posicionamento. O Airbnb diferenciado é o ativo de marketing dela."
+    },
+    {
+      name: "Ricardo & Paula",
+      meta: "Bodas de Prata · Petrópolis → Rio",
+      avatar: avatars.ricardoPaula,
+      description: "Casados há 25 anos. Ele é engenheiro, ela é dentista. Filhos adultos. Moram a uma hora do Rio. Vão descer só por duas noites pra comemorar a data. Querem zero stress logístico — só querem chegar e existir.",
+      tags: ["Aniversário", "2 noites", "Locais", "Maduros"],
+      answer: "janeiro",
+      difficulty: "hard",
+      points: 3,
+      explanation: "Pegadinha ao contrário. Podiam alugar uma cobertura linda, mas não é isso que querem comprar. Eles estão comprando ausência de fricção — alguém preparando tudo enquanto eles só aparecem. Isso é serviço, não espaço."
+    }
+  ];
+
+  // ============ STATE ============
+  let currentRound = 0;
+  let currentPlayer = 1;
+  let scores = [0, 0];
+  let answered = false;
+
+  const gameArea = document.getElementById('gameArea');
+  const progress = document.getElementById('progress');
+  const roundLabel = document.getElementById('roundLabel');
+  const revealOverlay = document.getElementById('revealOverlay');
+  const revealCard = document.getElementById('revealCard');
+
+  // ============ INIT ============
+  function init() {
+    progress.innerHTML = '';
+    profiles.forEach(() => {
+      const pip = document.createElement('div');
+      pip.className = 'pip';
+      progress.appendChild(pip);
+    });
+    renderRound();
+  }
+
+  function updatePlayerHighlight() {
+    document.getElementById('player1').classList.toggle('active', currentPlayer === 1 && currentRound < profiles.length);
+    document.getElementById('player2').classList.toggle('active', currentPlayer === 2 && currentRound < profiles.length);
+  }
+
+  function updateProgress() {
+    const pips = progress.children;
+    for (let i = 0; i < pips.length; i++) {
+      pips[i].className = 'pip';
+      if (i < currentRound) pips[i].classList.add('done');
+      else if (i === currentRound) pips[i].classList.add('current');
+    }
+    roundLabel.textContent = currentRound < profiles.length
+      ? `Rodada ${currentRound + 1} de ${profiles.length}`
+      : 'Resultado final';
+  }
+
+  // ============ RENDER ROUND ============
+  function renderRound() {
+    if (currentRound >= profiles.length) {
+      renderFinal();
+      return;
+    }
+
+    updatePlayerHighlight();
+    updateProgress();
+    answered = false;
+
+    const p = profiles[currentRound];
+    const diffLabel = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' }[p.difficulty];
+
+    gameArea.innerHTML = `
+      <div class="card fade-in">
+        <div class="difficulty-row">
+          <div class="difficulty ${p.difficulty}">${diffLabel}</div>
+          <div class="points-badge">Vale <strong>${p.points}</strong> ${p.points === 1 ? 'ponto' : 'pontos'} · Jogador ${currentPlayer}</div>
+        </div>
+
+        <div class="character-row">
+          <div class="avatar-frame">${p.avatar}</div>
+          <div class="profile-info">
+            <h2 class="profile-name">${p.name}</h2>
+            <div class="profile-meta">${p.meta}</div>
+            <p class="profile-description">${p.description}</p>
+            <div class="profile-tags">
+              ${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div class="choices">
+          <button class="choice choice-airbnb" onclick="handleChoice('airbnb')">
+            <span class="choice-label">Aposta no</span>
+            Airbnb
+          </button>
+          <button class="choice choice-janeiro" onclick="handleChoice('janeiro')">
+            <span class="choice-label">Aposta no</span>
+            Janeiro Hotel
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // ============ HANDLE CHOICE ============
+  function handleChoice(choice) {
+    if (answered) return;
+    answered = true;
+
+    const p = profiles[currentRound];
+    const correct = choice === p.answer;
+    const playerEl = document.getElementById('player' + currentPlayer);
+
+    if (correct) {
+      scores[currentPlayer - 1] += p.points;
+      document.getElementById('score' + currentPlayer).textContent = scores[currentPlayer - 1];
+      playerEl.classList.add('score-pulse');
+      setTimeout(() => playerEl.classList.remove('score-pulse'), 700);
+      launchConfetti();
+    } else {
+      playerEl.classList.add('score-pulse-bad');
+      setTimeout(() => playerEl.classList.remove('score-pulse-bad'), 500);
+    }
+
+    document.querySelectorAll('.choice').forEach(b => b.disabled = true);
+
+    // Show dramatic reveal overlay
+    setTimeout(() => showReveal(correct, p), 400);
+  }
+
+  // ============ DRAMATIC REVEAL ============
+  function showReveal(correct, p) {
+    const answerLabel = p.answer === 'airbnb' ? 'Airbnb' : 'Janeiro Hotel';
+    const colorClass = p.answer === 'airbnb' ? 'airbnb-color' : 'janeiro-color';
+    const verdictText = correct ? 'Acertou!' : 'Errou!';
+    const verdictClass = correct ? 'correct' : 'wrong';
+    const pointsText = correct
+      ? `Jogador ${currentPlayer} ganha <strong>+${p.points}</strong> ${p.points === 1 ? 'ponto' : 'pontos'}`
+      : `Jogador ${currentPlayer} não pontua nesta rodada`;
+
+    revealCard.innerHTML = `
+      <div class="verdict-banner ${verdictClass}">${verdictText}</div>
+      <div class="verdict-points">${pointsText}</div>
+      <div class="verdict-answer">A resposta era</div>
+      <div class="verdict-answer-name ${colorClass}">${answerLabel}</div>
+      <div class="verdict-explanation">${p.explanation}</div>
+      <button class="btn-next" onclick="closeReveal()">Próxima rodada →</button>
+    `;
+    revealOverlay.classList.add('show');
+  }
+
+  function closeReveal() {
+    revealOverlay.classList.remove('show');
+    setTimeout(nextRound, 300);
+  }
+
+  // ============ CONFETTI ============
+  function launchConfetti() {
+    const colors = ['#c89b4a', '#b04a28', '#5a6b4e', '#2c4a3e', '#d54a3a'];
+    const playerEl = document.getElementById('player' + currentPlayer);
+    const rect = playerEl.getBoundingClientRect();
+    const originX = rect.left + rect.width / 2;
+    const originY = rect.top + rect.height / 2;
+
+    for (let i = 0; i < 28; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+      particle.style.left = originX + 'px';
+      particle.style.top = originY + 'px';
+      particle.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+      const angle = (Math.PI * 2 * i) / 28 + Math.random() * 0.3;
+      const velocity = 80 + Math.random() * 140;
+      const tx = Math.cos(angle) * velocity;
+      const ty = Math.sin(angle) * velocity - 60;
+      particle.animate([
+        { transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
+        { transform: `translate(${tx}px, ${ty + 180}px) rotate(${360 + Math.random() * 360}deg)`, opacity: 0 }
+      ], {
+        duration: 1100 + Math.random() * 400,
+        easing: 'cubic-bezier(0.2, 0.8, 0.4, 1)'
+      });
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 1500);
+    }
+  }
+
+  // ============ NEXT ============
+  function nextRound() {
+    currentRound++;
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+    renderRound();
+  }
+
+  // ============ FINAL ============
+  function renderFinal() {
+    updatePlayerHighlight();
+    updateProgress();
+
+    let winnerText, winnerIdx;
+    if (scores[0] > scores[1]) { winnerText = 'Jogador 1 venceu'; winnerIdx = 0; }
+    else if (scores[1] > scores[0]) { winnerText = 'Jogador 2 venceu'; winnerIdx = 1; }
+    else { winnerText = 'Empate técnico'; winnerIdx = -1; }
+
+    gameArea.innerHTML = `
+      <div class="card">
+        <div class="final">
+          <div class="final-ornament">· · ·</div>
+          <h2 class="final-title">Fim de jogo</h2>
+          <div class="final-winner-crown">${winnerIdx === -1 ? 'Resultado' : 'O vencedor é'}</div>
+          <div class="final-winner-name">${winnerText}</div>
+
+          <div class="final-scores">
+            <div class="final-player ${winnerIdx === 0 ? 'winner' : ''}">
+              <div class="final-player-name">Jogador 1</div>
+              <div class="final-player-score">${scores[0]}</div>
+            </div>
+            <div class="final-player ${winnerIdx === 1 ? 'winner' : ''}">
+              <div class="final-player-name">Jogador 2</div>
+              <div class="final-player-score">${scores[1]}</div>
+            </div>
+          </div>
+
+          <button class="btn-restart" onclick="restart()">Jogar novamente</button>
+        </div>
+      </div>
+    `;
+
+    // Big celebratory confetti
+    if (winnerIdx !== -1) {
+      for (let burst = 0; burst < 4; burst++) {
+        setTimeout(() => bigConfettiBurst(), burst * 250);
+      }
+    }
+  }
+
+  function bigConfettiBurst() {
+    const colors = ['#c89b4a', '#b04a28', '#5a6b4e', '#2c4a3e', '#d54a3a', '#faf6ef'];
+    for (let i = 0; i < 50; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+      particle.style.width = (6 + Math.random() * 8) + 'px';
+      particle.style.height = (6 + Math.random() * 8) + 'px';
+      particle.style.left = (window.innerWidth / 2 + (Math.random() - 0.5) * 200) + 'px';
+      particle.style.top = (window.innerHeight / 2) + 'px';
+      particle.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+      const angle = Math.random() * Math.PI * 2;
+      const velocity = 200 + Math.random() * 300;
+      const tx = Math.cos(angle) * velocity;
+      const ty = Math.sin(angle) * velocity - 100;
+      particle.animate([
+        { transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
+        { transform: `translate(${tx}px, ${ty + 400}px) rotate(${720}deg)`, opacity: 0 }
+      ], {
+        duration: 1800 + Math.random() * 600,
+        easing: 'cubic-bezier(0.15, 0.8, 0.3, 1)'
+      });
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 2500);
+    }
+  }
+
+  function restart() {
+    currentRound = 0;
+    currentPlayer = 1;
+    scores = [0, 0];
+    document.getElementById('score1').textContent = '0';
+    document.getElementById('score2').textContent = '0';
+    init();
+  }
+
+  init();
+</script>
+</body>
+</html>
